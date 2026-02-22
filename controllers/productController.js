@@ -1,61 +1,84 @@
 const Product = require('../models/product.model');
 
-// جلب جميع المنتجات
-exports.getAllProducts = async (req, res) => {
+// GET /products
+exports.index = async (req, res) => {
   try {
-    const products = await Product.find();
-    res.json({ success: true, count: products.length, data: products });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find().skip(skip).limit(limit);
+    const total = await Product.countDocuments();
+
+    res.json({
+      success: true,
+      count: products.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      data: products
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// جلب منتج واحد بالـ ID
-exports.getProductById = async (req, res) => {
-  try {
-    res.json({ success: true, data: req.product });
-  } catch (error) {
-    res.status(500).json({ success: false, error: "product not found" });
-  }
+// GET /products/:id  (binding auto)
+exports.show = async (req, res) => {
+  res.json({ success: true, data: req.product });
 };
 
-// إضافة منتج جديد
-exports.createProduct = async (req, res) => {
+// POST /products
+exports.store = async (req, res) => {
   try {
     const { name, price, description } = req.body;
 
     const newProduct = await Product.create({ name, price, description });
-    res.status(201).json({ success: true, message: 'Product created successfully', data: newProduct });
+
+    res.status(201).json({
+      success: true,
+      message: 'Product created successfully',
+      data: newProduct
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// تحديث منتج
-exports.updateProduct = async (req, res) => {
+// PUT /products/:id
+exports.update = async (req, res) => {
   try {
     const { name, price, description } = req.body;
+
     req.product.name = name ?? req.product.name;
     req.product.price = price ?? req.product.price;
     req.product.description = description ?? req.product.description;
 
     await req.product.save();
-    res.json({ success: true, message: 'Product updated successfully', data: req.product });
+
+    res.json({
+      success: true,
+      message: 'Product updated successfully',
+      data: req.product
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// حذف منتج
-exports.deleteProduct = async (req, res) => {
+// DELETE /products/:id
+exports.destroy = async (req, res) => {
   try {
-    const deletedProduct = await req.product.remove();
 
-    if (!deletedProduct) {
-      return res.status(404).json({ success: false, error: 'Product not found' });
-    }
+    await req.product.deleteOne();
 
-    res.json({ success: true, message: 'Product deleted successfully' });
+    res.json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

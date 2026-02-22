@@ -8,7 +8,7 @@ connectDB();
 app.use(express.json());
 
 // ربط الـ Routes
-app.use('/products', productRoutes);
+app.use('/', productRoutes);
 
 // تشغيل السيرفر
 const PORT = process.env.PORT || 3000;

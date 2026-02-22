@@ -5,14 +5,12 @@ const {
 	validateCreateProduct,
 	validateUpdateProduct
 } = require('../middlewares/products/ProductRequest');
-const productBinding = require('../middlewares/products/productBinding');
+const Product = require('../models/product.model');
 
-router.param('id', productBinding);
+const resource = require('../utils/resource');
 
-router.get('/', productController.getAllProducts);
-router.get('/:id', productController.getProductById);
-router.post('/', validateCreateProduct, productController.createProduct);
-router.put('/:id', validateUpdateProduct, productController.updateProduct);
-router.delete('/:id', productController.deleteProduct);
+resource(router, 'products', productController, Product);
+
+
 
 module.exports = router;
